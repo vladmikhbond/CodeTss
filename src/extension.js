@@ -70,11 +70,12 @@ function write_to_file() {
 	// let disposable = vscode.commands.registerCommand('codelog.beginCommand', cmd_begin);
 
 	let disposable = vscode.commands.registerCommand('codelog.beginCommand', function() {
-		web.token_from_server("ask", "123!@#qweQWE", d => vscode.window.showInformationMessage(d) ); 
+		web.token("ask", "123!@#qweQWE"); 
 	});
 	context.subscriptions.push(disposable);
 
-	disposable = vscode.commands.registerCommand('codelog.endCommand', cmd_end);
+	// disposable = vscode.commands.registerCommand('codelog.endCommand', cmd_end);
+    disposable = vscode.commands.registerCommand('codelog.endCommand', web.get_task);
 	context.subscriptions.push(disposable);	
 }
 exports.activate = activate;
