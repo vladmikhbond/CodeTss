@@ -70,15 +70,15 @@ function token(name, pass)
 
     
   var req = http.request(options, (res) => {
-    let data;
+    let data = "";
     vscode.window.showInformationMessage(res.statusCode);	     
     
     res.on('data', (d) => {
-      data = d;
+      data += d.toString();
     });
     
     res.on('end', () => {
-      let obj = JSON.parse(data.toString());
+      let obj = JSON.parse(data);
       TOKEN = obj["access_token"];
       vscode.window.showInformationMessage(TOKEN);
     });
