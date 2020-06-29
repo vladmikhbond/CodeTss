@@ -3,10 +3,10 @@ const querystring = require('querystring');
 const http = require('http');
 
 //const HOST = 'tss.co.ua';
-const PORT = 5555;
+//const PORT = 5555;
 const HOST = 'localhost';
-// const PORT = 63751;
-const PATH = '/examine/codelog';
+const PORT = 63751;
+
 let TOKEN;
 
 // Send data in format
@@ -22,7 +22,7 @@ function write_to_server(log_id, all_changes, interval)
     var options = {
       hostname: HOST,
       port: PORT,
-      path: PATH,
+      path: '/examine/codelog',
       method: 'POST',
       headers: {
            'Content-Type': 'application/x-www-form-urlencoded',
@@ -59,7 +59,7 @@ function token(name, pass)
 
   var options = {
     hostname: HOST,
-    port: 5551,
+    port: PORT,
     path: '/api/token',
     method: 'POST',
     headers: {
@@ -94,46 +94,59 @@ function token(name, pass)
 }
 
 
-
-function get_task() 
+function check(examId, taskId, userAnswer) 
 {
-  var options = {
-    hostname: HOST,
-    port: 5551,
-    path: '/api/task/481',
-    method: 'POST',
-    headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Authorization': 'Bearer ' + TOKEN
-    }
-  };
+
+    var postData = querystring.stringify({
+      'examId' : examId, 
+      'taskId' : taskId, 
+      'userAnswer': userAnswer, 
+    });       
+
+    var options = {
+      hostname: HOST,
+      port: PORT,
+      path: '/examine/check',
+      method: 'POST',
+      headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Length': postData.length,
+            'Authorization': "Bearer " + TOKEN
+      }
+    };
 
     
-  var req = http.request(options, (res) => {
-    let data;
-    vscode.window.showInformationMessage(res.statusCode);	     
-    
-    res.on('data', (d) => {
-      data = d.toString();
-    });
-    
-    res.on('end', () => {
-      console.log(data)
-    });
+    var req = http.request(options, (res) => {
+        let data = '';
+        vscode.window.showInformationMessage(res.statusCode);	     
+        
+        res.on('data', (d) => {
+            data += d.toString();
+        });
+        
+        res.on('end', () => {
+            vscode.window.showInformationMessage(data);	 
+            console.log(data);
+        });
 
-  });
+    });
   
   req.on('error', (e) => {
     console.error(e);
   });
-  
+
+  req.write(postData);
   req.end();
 }
+
+
+
+
 
 
 
 module.exports = {
     write_to_server, 
     token,
-    get_task
+    check
 }
