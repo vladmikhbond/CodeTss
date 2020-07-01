@@ -10,19 +10,23 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:codelog.beginCommand" 
+		"onCommand:codelog.loginCommand" 
 	],
 	"main": "./src/extension.js",
 	"contributes": {
 
 		"commands": [
 			{
-				"command": "codelog.beginCommand",
-				"title": "BEGIN"
+				"command": "codelog.loginCommand",
+				"title": "  LOGIN"
 			},
 			{
-				"command": "codelog.endCommand",
-				"title": "END"
+				"command": "codelog.pinCommand",
+				"title": " PIN"
+			},
+			{
+				"command": "codelog.checkCommand",
+				"title": "CHECK"
 			}
 
 		],
@@ -30,17 +34,32 @@
 		"menus": {
 			"editor/title": [
 				{
-				  "command": "codelog.beginCommand",
+				  "command": "codelog.loginCommand",
 				  "group": "navigation"
 				},
 				{
-					"command": "codelog.endCommand",
+					"command": "codelog.pinCommand",
+					"group": "navigation"
+				},
+				{
+					"command": "codelog.checkCommand",
 					"group": "navigation"
 				}
  
 			]
 		}
 	},
+
+	"languages": [
+		{
+		  "id": "python",
+		  "extensions": [".py"],
+		  "aliases": ["Python", "py"],
+		  "filenames": [],
+		  "firstLine": "^#!/.*\\bpython[0-9.-]*\\b",
+		  "configuration": "./language-configuration.json"
+		}
+	  ],
 	"scripts": {
 		"lint": "eslint .",
 		"pretest": "npm run lint",

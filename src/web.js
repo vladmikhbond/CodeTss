@@ -9,14 +9,97 @@ const PORT = 63751;
 
 let TOKEN;
 
-// Send data in format
-//    {'data': all_changes, 'interval': interval_in_sec}
 //
-function write_to_server(log_id, all_changes, interval) 
+function token(name, pass) 
+{
+  var postData = querystring.stringify({
+    'username' : name, 
+    'password': pass       
+  });
+
+  var options = {
+    hostname: HOST,
+    port: PORT,
+    path: '/api/token',
+    method: 'POST',
+    headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Content-Length': postData.length
+    }
+  };
+    
+  var req = http.request(options, (res) => {
+    let data = "";
+    
+    res.on('data', (d) => {
+      data += d.toString();
+    });
+    
+    res.on('end', () => {
+      let obj = JSON.parse(data);
+      TOKEN = obj["access_token"];
+      vscode.window.showInformationMessage('successful login'); 
+    });
+
+  });
+  
+  req.on('error', (e) => {
+    console.error(e);
+  });
+  
+  req.write(postData);
+  req.end();
+}
+
+
+function tss_task(taskId, callback) 
+{
+    var postData = querystring.stringify({
+      'taskId' : taskId
+    });       
+
+    var options = {
+      hostname: HOST,
+      port: PORT,
+      path: '/examine/tsstask',
+      method: 'POST',
+      headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Length': postData.length,
+            'Authorization': "Bearer " + TOKEN
+      }
+    };
+
+    
+    var req = http.request(options, (res) => {
+        let data = '';
+
+        res.on('data', (d) => {
+            data += d.toString();
+        });
+        
+        res.on('end', () => {            
+            callback(JSON.parse(data)); 
+        });
+
+    });
+  
+  req.on('error', (e) => {
+    console.error(e);
+  });
+
+  req.write(postData);
+  req.end();
+}
+
+
+//
+function write_to_server(log_id, all_changes) 
 {
     var postData = querystring.stringify({
         'ticketId' : log_id, 
-        'data': JSON.stringify({'changes': all_changes, 'interval': interval} )        
+        'data': JSON.stringify(all_changes),
+        'sender': 'code'         
     });
     
     var options = {
@@ -49,54 +132,9 @@ function write_to_server(log_id, all_changes, interval)
     req.end();
 }
 
-////////////////////////////////////////////////////
-function token(name, pass) 
-{
-  var postData = querystring.stringify({
-    'username' : name, 
-    'password': pass       
-  });
-
-  var options = {
-    hostname: HOST,
-    port: PORT,
-    path: '/api/token',
-    method: 'POST',
-    headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Content-Length': postData.length
-    }
-  };
-
-    
-  var req = http.request(options, (res) => {
-    let data = "";
-    vscode.window.showInformationMessage(res.statusCode);	     
-    
-    res.on('data', (d) => {
-      data += d.toString();
-    });
-    
-    res.on('end', () => {
-      let obj = JSON.parse(data);
-      TOKEN = obj["access_token"];
-      vscode.window.showInformationMessage(TOKEN);
-    });
-
-  });
-  
-  req.on('error', (e) => {
-    console.error(e);
-  });
-  
-  req.write(postData);
-  req.end();
-}
-
 
 function check(examId, taskId, userAnswer) 
 {
-
     var postData = querystring.stringify({
       'examId' : examId, 
       'taskId' : taskId, 
@@ -141,12 +179,9 @@ function check(examId, taskId, userAnswer)
 
 
 
-
-
-
-
 module.exports = {
     write_to_server, 
     token,
+    tss_task,
     check
 }
