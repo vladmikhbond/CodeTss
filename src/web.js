@@ -10,7 +10,7 @@ const PORT = 63751;
 let TOKEN;
 
 //
-function token(name, pass) 
+function token(name, pass, callback) 
 {
   var postData = querystring.stringify({
     'username' : name, 
@@ -29,6 +29,9 @@ function token(name, pass)
   };
     
   var req = http.request(options, (res) => {
+    if (res.statusCode != 200)
+        vscode.window.showWarningMessage('Wrong login or pass.');
+
     let data = "";
     
     res.on('data', (d) => {
@@ -38,7 +41,9 @@ function token(name, pass)
     res.on('end', () => {
       let obj = JSON.parse(data);
       TOKEN = obj["access_token"];
-      vscode.window.showInformationMessage('successful login'); 
+      vscode.window.showInformationMessage('Successful login');
+      if (callback) 
+          callback(); 
     });
 
   });
@@ -72,6 +77,8 @@ function tss_task(taskId, callback)
 
     
     var req = http.request(options, (res) => {
+
+        // vscode.window.showInformationMessage('tss_task: ' + res.statusCode);
         let data = '';
 
         res.on('data', (d) => {
@@ -79,7 +86,7 @@ function tss_task(taskId, callback)
         });
         
         res.on('end', () => {            
-            callback(JSON.parse(data)); 
+            callback(data); 
         });
 
     });
@@ -94,11 +101,11 @@ function tss_task(taskId, callback)
 
 
 //
-function write_to_server(log_id, all_changes) 
+function uppload_code_log(ticket_id, log, callback) 
 {
     var postData = querystring.stringify({
-        'ticketId' : log_id, 
-        'data': JSON.stringify(all_changes),
+        'ticketId' : ticket_id, 
+        'data': JSON.stringify(log),
         'sender': 'code'         
     });
     
@@ -114,14 +121,12 @@ function write_to_server(log_id, all_changes)
     };
     
     var req = http.request(options, (res) => {
-      if (res.statusCode == 200)
-         vscode.window.showInformationMessage("Saved on END");	
-      else
-         vscode.window.showInformationMessage('Not Saved');
- 
-      res.on('data', (d) => {
-        process.stdout.write(d);
+      // vscode.window.showInformationMessage('uppload_code_log: ' + res.statusCode);
+
+      res.on('end', () => {            
+          callback(); 
       });
+
     });
     
     req.on('error', (e) => {
@@ -133,7 +138,9 @@ function write_to_server(log_id, all_changes)
 }
 
 
-function check(examId, taskId, userAnswer) 
+// collback(mes), where mes is result of cheching
+//
+function check(examId, taskId, userAnswer, callback) 
 {
     var postData = querystring.stringify({
       'examId' : examId, 
@@ -155,16 +162,17 @@ function check(examId, taskId, userAnswer)
 
     
     var req = http.request(options, (res) => {
+        // vscode.window.showInformationMessage('check: ' + res.statusCode);
         let data = '';
-        vscode.window.showInformationMessage(res.statusCode);	     
+        
         
         res.on('data', (d) => {
             data += d.toString();
         });
         
-        res.on('end', () => {
-            vscode.window.showInformationMessage(data);	 
-            console.log(data);
+        res.on('end', () => { 
+            const mes = JSON.parse(data).message;
+            callback(mes);
         });
 
     });
@@ -180,7 +188,7 @@ function check(examId, taskId, userAnswer)
 
 
 module.exports = {
-    write_to_server, 
+    uppload_code_log, 
     token,
     tss_task,
     check

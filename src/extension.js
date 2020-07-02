@@ -1,14 +1,10 @@
- 
-
-
-
-
 const vscode = require('vscode');
 const fs = require('fs');
 const dif = require('./text_difference');
 const web = require('./web');
 
-const TIME_INTERVAL = 5;  // in sec
+const TIME_INTERVAL = 5; // sec
+const SEP_STATE = "@#$"; 
 
 // локальные данные
 let exam_id = null;
@@ -23,36 +19,32 @@ let log = null; // список списков изменений
 // Login - input login & pass, get and save a ticket
 // 
 function cmd_login() {	
-	vscode.window.showInputBox({prompt: "Input Login "}).then( (login) => {
+	vscode.window.showInputBox({prompt: "Input Login ", placeHolder: "login"}).then( (login) => {
 		vscode.window.showInputBox({prompt: "Input Password ", password: true}).then(
 			(pass) => {
-				web.token(login, pass);
+				web.token(login, pass, cmd_pin);
 			}
 		)
 	});
 }
 
 
-// public int Id { get; set; }
-// public string Title { get; set; }
-// public string Attr { get; set; }
-// public string Lang { get; set; }
-// public string Cond { get; set; }
-// public string View { get; set; }
-// public string Hint { get; set; }
-// public string Code { get; set; }
-
-// Pin - input pin and save it. get a problem condition. open an editor window.
+// Pin - input pin and save it. get a tssTask. Open an editor window.
+// tssTask = {id, title, attr, lang, cond, view, hint, code}
 //
 function cmd_pin() {		
 	vscode.window.showInputBox({prompt: "Input Login ", placeHolder: "xxx-xxx-xxx"}).then(
 		(v) => {
 			[exam_id, task_id, ticket_id] = v.split('-');
 			
-
-			web.tss_task(task_id, (tssTask) => {
-				let cont = "/*\n" + tssTask.cond + "\n*/" + tssTask.View;
-				vscode.workspace.openTextDocument({content: cont, language: 'csharp'});
+			web.tss_task(task_id, (data) => {
+				const tssTask = JSON.parse(data);
+				// Show problem condition //
+				let content = "/*\n" + tssTask.cond + "\n*/\n" + tssTask.view;
+				let language = 'csharp';
+				let doc = vscode.workspace.openTextDocument({content, language});
+				vscode.window.showTextDocument(doc);				
+				// Start logging //
 				clear_log();
 				setInterval(save_changes, TIME_INTERVAL * 1000);
 			} );
@@ -64,45 +56,47 @@ function clear_log() {
 	log = [];
 	last_text = "";
 }
+	
 
 // Check - send answer and log
 //
 function cmd_check() {
 	const editor = vscode.window.activeTextEditor;		
-	if (editor) {	
+	if (editor) {
+		// check 	
 		const selection = editor.selection;
 		const userAnswer = editor.document.getText(selection);		
-		web.check(exam_id, task_id, userAnswer); 	
-	}
-    // log
-	web.write_to_server(ticket_id, log);	
-	write_to_file();  // for debug only
-	save_changes();
-	clear_log();				
+		web.check(exam_id, task_id, userAnswer, (message) => {
+			vscode.window.showInformationMessage(message);
+			// запись состояния в лог
+			save_changes(message)
+			// сохранение  лога
+			web.uppload_code_log(ticket_id, log, clear_log);
+		}); 	
+	}	
 }
 
 
 // Сохраняет в памяти очередной список изменений 
 //
-function save_changes() {
+function save_changes(state) {
 	const editor = vscode.window.activeTextEditor;		
 	if (editor) {		
-		const next_text = editor.document.getText();
+		let next_text = editor.document.getText();
+		if (state)
+			next_text += SEP_STATE + state;
+			
 		const increment = dif.changes(last_text, next_text, 3);
 		last_text = next_text;  			
 		log.push(increment);
-		vscode.window.showInformationMessage("save_one_inc()");			
-	} else {
-		vscode.window.showInformationMessage("Idle");
 	}
-
 } 
 
 // Выводит список инкрементов в файл в формате json
 //
-function write_to_file() {
-	fs.writeFileSync(`c:/spy/${ticket_id}.txt`, JSON.stringify(log));			
-} 
+// function write_to_file() {
+// 	fs.writeFileSync(`c:/spy/${ticket_id}.txt`, JSON.stringify(log));			
+// } 
 
 
 /**
