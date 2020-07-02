@@ -41,8 +41,8 @@ function cmd_pin() {
 				const tssTask = JSON.parse(data);
 				// Show problem condition //
 				let content = "/*\n" + tssTask.cond + "\n*/\n" + tssTask.view;
-				let language = 'csharp';
-				let doc = vscode.workspace.openTextDocument({content, language});
+
+				let doc = vscode.workspace.openTextDocument({content, language: lang(tssTask.lang)});
 				vscode.window.showTextDocument(doc);				
 				// Start logging //
 				clear_log();
@@ -56,6 +56,10 @@ function clear_log() {
 	log = [];
 	last_text = "";
 }
+function lang(key) {
+	let v = {'cs': 'csharp'}[key];
+	return v ? v : 'csharp';
+}
 	
 
 // Check - send answer and log
@@ -65,7 +69,8 @@ function cmd_check() {
 	if (editor) {
 		// check 	
 		const selection = editor.selection;
-		const userAnswer = editor.document.getText(selection);		
+		const userAnswer = editor.document.getText(selection);	
+		vscode.window.showInformationMessage('WAIT');	
 		web.check(exam_id, task_id, userAnswer, (message) => {
 			vscode.window.showInformationMessage(message);
 			// запись состояния в лог

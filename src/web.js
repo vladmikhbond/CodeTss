@@ -160,7 +160,6 @@ function check(examId, taskId, userAnswer, callback)
       }
     };
 
-    
     var req = http.request(options, (res) => {
         // vscode.window.showInformationMessage('check: ' + res.statusCode);
         let data = '';

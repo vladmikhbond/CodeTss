@@ -1,6 +1,6 @@
 # codelog README
 
-This is the README for your extension "codelog". After writing up a brief description, we recommend including the following sections.
+IDE for TSS
 
 ## Features
 
