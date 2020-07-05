@@ -5,7 +5,7 @@ const http = require('http');
 //const HOST = 'tss.co.ua';
 //const PORT = 5555;
 const HOST = 'localhost';
-const PORT = 63751;
+const PORT = 44343;
 
 let TOKEN;
 
@@ -29,7 +29,7 @@ function token(name, pass, callback)
   };
     
   var req = http.request(options, (res) => {
-    if (res.statusCode != 200)
+    if (res.statusCode > 299)
         vscode.window.showWarningMessage('Wrong login or pass.');
 
     let data = "";

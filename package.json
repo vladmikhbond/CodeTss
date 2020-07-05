@@ -11,7 +11,7 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:codelog.loginCommand" 
+		"onStartupFinished"
 	],
 	"main": "./src/extension.js",
 
