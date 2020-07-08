@@ -5,7 +5,7 @@ const http = require('http');
 //const HOST = 'tss.co.ua';
 //const PORT = 5555;
 const HOST = 'localhost';
-const PORT = 44343;
+const PORT = 49847;
 
 let TOKEN;
 
@@ -99,7 +99,6 @@ function tss_task(taskId, callback)
   req.end();
 }
 
-
 //
 function uppload_code_log(ticket_id, log, callback) 
 {
@@ -151,7 +150,7 @@ function check(examId, taskId, userAnswer, callback)
     var options = {
       hostname: HOST,
       port: PORT,
-      path: '/examine/check',
+      path: '/examstud/check',
       method: 'POST',
       headers: {
             'Content-Type': 'application/x-www-form-urlencoded',

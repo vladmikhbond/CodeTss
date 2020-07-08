@@ -1,6 +1,6 @@
 const vscode = require('vscode');
 const fs = require('fs');
-const dif = require('./text_difference');
+const dif = require('./inc_diff');
 const web = require('./web');
 
 const TIME_INTERVAL = 5; // sec

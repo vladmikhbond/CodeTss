@@ -1,7 +1,7 @@
 
 
 const assert = require('assert');
-const dif = require('../../src/text_difference');
+const dif = require('../../src/inc_diff');
 
 // You can import and use all API from the 'vscode' module
 // as well as import your extension to test it
