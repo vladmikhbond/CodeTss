@@ -1,5 +1,5 @@
 const vscode = require('vscode');
-const fs = require('fs');
+// const fs = require('fs');
 const dif = require('./inc_diff');
 const web = require('./web');
 
@@ -7,12 +7,22 @@ const TIME_INTERVAL = 5; // sec
 const SEP_STATE = "@#$"; 
 
 // локальные данные
-let exam_id = null;
-let task_id = null;
-let ticket_id = null;
+let model;
+// UserName = User.Identity.Name,
+// ExamId = exam.Id,
+// TaskId = task.Id,
+// TaskTitle = task.Title,
+// TaskCond = task.Cond,
+// TaskView = task.View,
+// TaskLang = LangEncode(task.Lang),
+// RestTime = ticket != null ? ticket.GetRestTime().ToString("mm\\:ss") : "",
+// TicketId = ticket != null ? ticket.Id : 0
+
 
 let last_text = null;
 let log = null; // список списков изменений
+//Create output channel
+let tss_channel = vscode.window.createOutputChannel("TSS");
 
 
 
@@ -22,42 +32,35 @@ function cmd_login() {
 	vscode.window.showInputBox({prompt: "Input Login ", placeHolder: "login"}).then( (login) => {
 		vscode.window.showInputBox({prompt: "Input Password ", password: true}).then(
 			(pass) => {
-				web.token(login, pass, cmd_pin);
+				web.token(login, pass)
+				.then(web.details_code)
+				.then(start_work)
+				.catch(vscode.window.showErrorMessage);
 			}
 		)
 	});
 }
 
 
-// Pin - input pin and save it. get a tssTask. Open an editor window.
-// tssTask = {id, title, attr, lang, cond, view, hint, code}
-//
-function cmd_pin() {		
-	vscode.window.showInputBox({prompt: "Input Login ", placeHolder: "xxx-xxx-xxx"}).then(
-		(v) => {
-			[exam_id, task_id, ticket_id] = v.split('-');
-			
-			web.tss_task(task_id, (data) => {
-				const tssTask = JSON.parse(data);
-				// Show problem condition //
-				let content = "/*\n" + tssTask.cond + "\n*/\n" + tssTask.view;
+function start_work(obj) {
+	model = obj;
+	let content = "/*\n" + model.taskCond + "\n*/\n" + model.taskView;
 
-				let doc = vscode.workspace.openTextDocument({content, language: lang(tssTask.lang)});
-				vscode.window.showTextDocument(doc);				
-				// Start logging //
-				clear_log();
-				setInterval(save_changes, TIME_INTERVAL * 1000);
-			} );
-		}
-	);
+	let doc = vscode.workspace.openTextDocument({content, language: lang(model.taskLang)});
+	vscode.window.showTextDocument(doc);				
+	// Start logging //
+	clear_log();
+	setInterval(save_changes, TIME_INTERVAL * 1000);
 }
+
 
 function clear_log() {
 	log = [];
 	last_text = "";
 }
+
 function lang(key) {
-	let v = {'cs': 'csharp'}[key];
+	let v = {'cs': 'csharp', 'py': 'python', 'js': 'javascript'}[key];
 	return v ? v : 'csharp';
 }
 	
@@ -71,15 +74,23 @@ function cmd_check() {
 		const selection = editor.selection;
 		const userAnswer = editor.document.getText(selection);	
 		vscode.window.showInformationMessage('WAIT');	
-		web.check(exam_id, task_id, userAnswer, (message) => {
-			vscode.window.showInformationMessage(message);
-			// запись состояния в лог
-			save_changes(message)
-			// сохранение  лога
-			web.uppload_code_log(ticket_id, log, clear_log);
-		}); 	
+		web.check(model.examId, userAnswer)
+		.then(show_n_save)
+		.then(() => {web.uppload_code_log(model.ticketId, log)})
+		.then(clear_log)
+		.catch(vscode.window.showErrorMessage);
 	}	
 }
+
+function show_n_save(data) {
+
+	tss_channel.appendLine(data.message);
+	tss_channel.appendLine("rest time: " + data.restTime);
+	vscode.window.showInformationMessage(data.message);
+
+	save_changes(data.message)
+}
+
 
 
 // Сохраняет в памяти очередной список изменений 
@@ -91,17 +102,11 @@ function save_changes(state) {
 		if (state)
 			next_text += SEP_STATE + state;
 			
-		const increment = dif.changes(last_text, next_text, 3);
+		const increment = dif.changes(last_text, next_text);
 		last_text = next_text;  			
 		log.push(increment);
 	}
 } 
-
-// Выводит список инкрементов в файл в формате json
-//
-// function write_to_file() {
-// 	fs.writeFileSync(`c:/spy/${ticket_id}.txt`, JSON.stringify(log));			
-// } 
 
 
 /**
@@ -113,8 +118,6 @@ function save_changes(state) {
     // Регистрация команд
 	let disposable = vscode.commands.registerCommand('codelog.loginCommand', cmd_login);
 	context.subscriptions.push(disposable);
-	disposable = vscode.commands.registerCommand('codelog.pinCommand', cmd_pin);
-	context.subscriptions.push(disposable);	
 	disposable = vscode.commands.registerCommand('codelog.checkCommand', cmd_check);
 	context.subscriptions.push(disposable);	
 }

@@ -23,10 +23,6 @@
 				"title": "  LOGIN"
 			},
 			{
-				"command": "codelog.pinCommand",
-				"title": " PIN"
-			},
-			{
 				"command": "codelog.checkCommand",
 				"title": "CHECK"
 			}
@@ -38,10 +34,6 @@
 				{
 				  "command": "codelog.loginCommand",
 				  "group": "navigation"
-				},
-				{
-					"command": "codelog.pinCommand",
-					"group": "navigation"
 				},
 				{
 					"command": "codelog.checkCommand",
