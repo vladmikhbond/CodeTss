@@ -1,7 +1,7 @@
 const vscode = require('vscode');
 const dif = require('./inc_diff');
 const web = require('./web');
-const { utils } = require('mocha');
+
 
 // globals
 const TIME_INTERVAL = 5; // sec
