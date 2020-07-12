@@ -25,6 +25,10 @@
 			{
 				"command": "codelog.checkCommand",
 				"title": "CHECK"
+			},
+			{
+				"command": "codelog.helpCommand",
+				"title": "HELP"
 			}
 
 		],
@@ -37,6 +41,10 @@
 				},
 				{
 					"command": "codelog.checkCommand",
+					"group": "navigation"
+				},
+				{
+					"command": "codelog.helpCommand",
 					"group": "navigation"
 				}
  
