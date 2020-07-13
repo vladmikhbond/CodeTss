@@ -1,8 +1,8 @@
 {
-	"name": "codelog",
-	"displayName": "Code Log",
+	"name": "codetss",
+	"displayName": "Code TSS",
 	"description": "",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"publisher": "tss",
 	"engines": {
 		"vscode": "^1.46.0"
@@ -19,15 +19,15 @@
 
 		"commands": [
 			{
-				"command": "codelog.loginCommand",
+				"command": "codetss.loginCommand",
 				"title": "  LOGIN"
 			},
 			{
-				"command": "codelog.checkCommand",
+				"command": "codetss.checkCommand",
 				"title": "CHECK"
 			},
 			{
-				"command": "codelog.helpCommand",
+				"command": "codetss.helpCommand",
 				"title": "HELP"
 			}
 
@@ -36,15 +36,15 @@
 		"menus": {
 			"editor/title": [
 				{
-				  "command": "codelog.loginCommand",
+				  "command": "codetss.loginCommand",
 				  "group": "navigation"
 				},
 				{
-					"command": "codelog.checkCommand",
+					"command": "codetss.checkCommand",
 					"group": "navigation"
 				},
 				{
-					"command": "codelog.helpCommand",
+					"command": "codetss.helpCommand",
 					"group": "navigation"
 				}
  

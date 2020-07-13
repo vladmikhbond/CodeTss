@@ -56,49 +56,51 @@ function token(name, pass)
 }
 
 
-function details_code() 
+function details_code(examId=-1) 
 {
     return new Promise(function(resolve, reject) {
 
-      var postData = "";
+      var postData = querystring.stringify({
+        'examId' : examId, 
+      });
 
-        var options = {
-          hostname: HOST,
-          port: PORT,
-          path: '/examstud/detailscode',
-          method: 'POST',
-          headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': postData.length,
-                'Authorization': "Bearer " + TOKEN
-          }
-        };
-          
-        var req = http.request(options, (res) => {
-          if (res.statusCode != 200)
-              reject('Wrong something.');
+      var options = {
+        hostname: HOST,
+        port: PORT,
+        path: '/examstud/detailscode',
+        method: 'POST',
+        headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'Content-Length': postData.length,
+              'Authorization': "Bearer " + TOKEN
+        }
+      };
+        
+      var req = http.request(options, (res) => {
+        if (res.statusCode != 200)
+            reject(`Something wrong. StatusCode ${res.statusCode}`);
 
-          let data = "";
-          
-          res.on('data', (d) => {
-            data += d.toString();
-          });
-          
-          res.on('end', () => {    
-            let model = JSON.parse(data); 
-            if (typeof(model) === "object")               
-                resolve(model);
-            else
-                reject(model);
-          });
-
+        let data = "";
+        
+        res.on('data', (d) => {
+          data += d.toString();
         });
         
-        req.on('error', reject);
-             
-        req.write(postData);
-        req.end();
-    });
+        res.on('end', () => {    
+          let model = JSON.parse(data); 
+          if (typeof(model) === "object")               
+              resolve(model);
+          else
+              reject(model);
+        });
+
+      });
+      
+      req.on('error', reject);
+            
+      req.write(postData);
+      req.end();
+  });
 }
 
 // result of checking: {message, restTime}

@@ -36,7 +36,20 @@ function cmd_login() {
 			(pass) => {
 				web.token(login, pass)
 				.then(web.details_code)
-				.then(start_work)
+
+				.then((m) => {
+					if (m.examId)
+					    // only one exam is active
+						start_work(m);
+					else {
+						// more then one exam are active
+						vscode.window.showInputBox({prompt: "Select an exam", value: m.toString()})
+						.then(web.details_code)							
+						.then(start_work)
+						.catch(vscode.window.showErrorMessage);
+					}
+				})
+
 				.catch(vscode.window.showErrorMessage);
 			}
 		)
@@ -147,7 +160,8 @@ function renew_time(t) {
 	model.restSeconds -= t;
 	vscode.window.showInformationMessage(sec2timeStr(model.restSeconds));
 	if (model.restSeconds < 0) {
-		web.check(model.examId, "xxx"); ///////////////
+		// fake check to close ticket
+		web.check(model.examId, "xxx");
 	}
 }
 
@@ -159,11 +173,11 @@ function renew_time(t) {
  function activate(context) 
  {	 
     // Регистрация команд
-	let disposable = vscode.commands.registerCommand('codelog.loginCommand', cmd_login);
+	let disposable = vscode.commands.registerCommand('codetss.loginCommand', cmd_login);
 	context.subscriptions.push(disposable);
-	disposable = vscode.commands.registerCommand('codelog.checkCommand', cmd_check);
+	disposable = vscode.commands.registerCommand('codetss.checkCommand', cmd_check);
 	context.subscriptions.push(disposable);	
-	disposable = vscode.commands.registerCommand('codelog.helpCommand', cmd_help);
+	disposable = vscode.commands.registerCommand('codetss.helpCommand', cmd_help);
 	context.subscriptions.push(disposable);	
 }
 exports.activate = activate;
