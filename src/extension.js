@@ -115,6 +115,13 @@ function lang_suit(la) {
 	return dict[la] ? dict[la] : dict['csharp'];
 }
 
+function atob(a) {
+    return Buffer.from(a).toString('base64');
+}
+function btoa(b) {
+    return Buffer.from(b, 'base64').toString('ascii');
+}
+
 //#endregion utils
 
 function start_work(m) {
