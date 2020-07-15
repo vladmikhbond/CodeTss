@@ -22,9 +22,9 @@ let model; // ExamineViewModel
 
 let last_text = null;
 let log = null; // список списков изменений
-//Create output channel TSS
+// Output channel TSS
 let tss_channel = vscode.window.createOutputChannel("TSS");
-
+let timer_log, timer_time;
 
 //#region commands
 
@@ -57,7 +57,7 @@ function cmd_check() {
 		}
 		vscode.window.showInformationMessage('WAIT');	
 		web.check(model.ticketId, userAnswer, log)
-			.then(show_n_save)
+			.then(after_checking)
 			.catch(vscode.window.showErrorMessage);
 	}	
 }
@@ -83,7 +83,7 @@ function clear_log() {
 }
 
 
-function sec2timeStr(n) {
+function seconds2timeStr(n) {
     let sec = n % 60;
     let min = (n - sec) / 60;
     return `Rest time: ${min}' ${sec}"`;
@@ -109,8 +109,8 @@ function btoa(b) {
 
 //#endregion utils
 
-function start_work() {
-
+function start_work() 
+{
 	let {lang, open, close} = lang_suit(model.taskLang);
 	let content = open+"\n" + model.taskCond + "\n"+close+"\n" + model.taskView;
 
@@ -118,40 +118,59 @@ function start_work() {
 	vscode.window.showTextDocument(doc);				
 	// Start logging 
 	clear_log();
-	setInterval(changes_to_memory, TIME_INTERVAL * 1000);
-	setInterval(renew_time, TIME_INTERVAL * 2000, TIME_INTERVAL * 2) ;
-	
+	timer_log = setInterval(changes_to_memory, TIME_INTERVAL * 1000);
+	timer_time = setInterval(renew_time, TIME_INTERVAL * 2000, TIME_INTERVAL * 2) ;	
 }
 
 
-function show_n_save(data) {
-	model.restSeconds = data.restTime;
-	tss_channel.appendLine(data.message);
-	tss_channel.appendLine("rest time: " + data.restTime);
-	vscode.window.showInformationMessage(data.message);
+//
+function after_checking({ restTime, message })
+{
+	// rest time
+	model.restSeconds = restTime;	
+	// write state to log
 	clear_log();
-	changes_to_memory(data.message);
-	if (data.message.startsWith('OK'))
-	    web.uppload_code_log(model.ticketId, log);
+	changes_to_memory(message);
+	let ok = message.indexOf("OK") === 0;
+	if (ok) {
+        // to save last message
+		web.uppload_code_log(model.ticketId, log);
+		vscode.window.showInformationMessage(message); 
+		epilog();
+	} else {
+		vscode.window.showErrorMessage(message);
+	}
+	tss_channel.appendLine(message);
+	tss_channel.appendLine("rest time: " + restTime);
 }
 
+function epilog() {
+	setTimeout(function () {
+        vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+	}, 3000);
+	clearInterval(timer_log);	
+	clearInterval(timer_time);
+}
 
 function changes_to_memory(state) {
 	const editor = vscode.window.activeTextEditor;		
-	if (editor) {		
-		let next_text = editor.document.getText();
-		if (state)
-			next_text += SEP_STATE + state;
-			
-		const increment = dif.changes(last_text, next_text);
-		last_text = next_text;  			
-		log.push(increment);
-	}
+	if (!editor)
+		return;
+	if (editor.document.fileName.startsWith('extension-output'))
+	   return;
+
+	let next_text = editor.document.getText();
+	if (state)
+		next_text += SEP_STATE + state;
+		
+	const increment = dif.changes(last_text, next_text);
+	last_text = next_text;  			
+	log.push(increment);	
 }
 
 function renew_time(t) {
 	model.restSeconds -= t;
-	vscode.window.showInformationMessage(sec2timeStr(model.restSeconds));
+	vscode.window.showInformationMessage(seconds2timeStr(model.restSeconds));
 	if (model.restSeconds < 0) {
 		// fake check to close ticket
 		web.check(model.examId, "xxx");
