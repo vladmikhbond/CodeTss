@@ -31,28 +31,15 @@ let tss_channel = vscode.window.createOutputChannel("TSS");
 // Login - input login & pass, get and save a ticket
 // 
 function cmd_login() {	
-	vscode.window.showInputBox({prompt: "Input Login ", placeHolder: "login"}).then( (login) => {
-		vscode.window.showInputBox({prompt: "Input Password ", password: true}).then(
-			(pass) => {
-				web.token(login, pass)
-				.then(web.details_code)
-
-				.then((m) => {
-					if (m.examId)
-					    // only one exam is active
-						start_work(m);
-					else {
-						// more then one exam are active
-						vscode.window.showInputBox({prompt: "Select an exam", value: m.toString()})
-						.then(web.details_code)							
-						.then(start_work)
-						.catch(vscode.window.showErrorMessage);
-					}
-				})
-
-				.catch(vscode.window.showErrorMessage);
-			}
-		)
+	vscode.window.showInputBox({prompt: "Input pin ", placeHolder: "pin"}).then( (pin) => {
+					
+		web.token(pin)
+		.then((obj) => {
+			// save model to globals
+			model = obj.exam_model;
+			start_work();
+		})
+		.catch(vscode.window.showErrorMessage);	
 	});
 }
 
@@ -69,11 +56,9 @@ function cmd_check() {
 			return;
 		}
 		vscode.window.showInformationMessage('WAIT');	
-		web.check(model.examId, userAnswer)
-		.then(show_n_save)
-		.then(() => {web.uppload_code_log(model.ticketId, log)})
-		.then(clear_log)
-		.catch(vscode.window.showErrorMessage);
+		web.check(model.ticketId, userAnswer, log)
+			.then(show_n_save)
+			.catch(vscode.window.showErrorMessage);
 	}	
 }
 
@@ -124,9 +109,8 @@ function btoa(b) {
 
 //#endregion utils
 
-function start_work(m) {
-	// save model to globals
-	model = m;
+function start_work() {
+
 	let {lang, open, close} = lang_suit(model.taskLang);
 	let content = open+"\n" + model.taskCond + "\n"+close+"\n" + model.taskView;
 
@@ -145,8 +129,10 @@ function show_n_save(data) {
 	tss_channel.appendLine(data.message);
 	tss_channel.appendLine("rest time: " + data.restTime);
 	vscode.window.showInformationMessage(data.message);
-
-	changes_to_memory(data.message)
+	clear_log();
+	changes_to_memory(data.message);
+	if (data.message.startsWith('OK'))
+	    web.uppload_code_log(model.ticketId, log);
 }
 
 

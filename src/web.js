@@ -10,19 +10,18 @@ const PORT = 49847;
 let TOKEN;
 
 // 
-function token(name, pass) 
+function token(pin) 
 {
     return new Promise(function(resolve, reject) {
 
         var postData = querystring.stringify({
-          'username' : name, 
-          'password': pass       
+          'pin': pin,
         });
 
         var options = {
           hostname: HOST,
           port: PORT,
-          path: '/api/token',
+          path: '/api/token_pin',
           method: 'POST',
           headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -32,7 +31,7 @@ function token(name, pass)
           
         var req = http.request(options, (res) => {
           if (res.statusCode > 299)
-              reject('Wrong login or pass.');
+              reject('Wrong pin.');
 
           let data = "";
           
@@ -42,8 +41,8 @@ function token(name, pass)
           
           res.on('end', () => {
             let obj = JSON.parse(data);
-            TOKEN = obj["access_token"];
-            resolve(data);  // resolve  
+            TOKEN = obj["pin_token"];
+            resolve(obj);  // resolve  
           });
 
         });
@@ -105,12 +104,14 @@ function details_code(examId=-1)
 
 // result of checking: {message, restTime}
 //
-function check(examId, userAnswer) 
+function check(ticketId, userAnswer, log) 
 {
   return new Promise(function(resolve, reject) {
     var postData = querystring.stringify({
-      'examId' : examId, 
-      'userAnswer': userAnswer, 
+      'ticketId' : ticketId, 
+      'userAnswer': userAnswer,     
+      'log': JSON.stringify(log),
+      'sender': 'code'         
     });       
 
     var options = {
@@ -127,6 +128,9 @@ function check(examId, userAnswer)
 
     var req = http.request(options, (res) => {
         
+      if (res.statusCode > 299)
+           reject(res.statusMessage);
+
         let data = '';
         
         res.on('data', (d) => {
@@ -151,14 +155,14 @@ function uppload_code_log(ticket_id, log)
   return new Promise(function(resolve, reject) {
     var postData = querystring.stringify({
       'ticketId' : ticket_id, 
-      'data': JSON.stringify(log),
+      'log': JSON.stringify(log),
       'sender': 'code'         
     });
   
     var options = {
       hostname: HOST,
       port: PORT,
-      path: '/examine/codelog',
+      path: '/examstud/log',
       method: 'POST',   
       headers: {
           'Content-Type': 'application/x-www-form-urlencoded',

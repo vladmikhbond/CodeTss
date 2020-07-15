@@ -20,11 +20,11 @@
 		"commands": [
 			{
 				"command": "codetss.loginCommand",
-				"title": "  LOGIN"
+				"title": "  PIN"
 			},
 			{
 				"command": "codetss.checkCommand",
-				"title": "CHECK"
+				"title": " CHECK"
 			},
 			{
 				"command": "codetss.helpCommand",
