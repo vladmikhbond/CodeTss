@@ -3,28 +3,17 @@ const dif = require('./inc_diff');
 const web = require('./web');
 
 
-// globals
+// super globals (shared with another app) --------
 const TIME_INTERVAL = 5; // sec
 const SEP_STATE = "@#$"; 
 
-// local globals
-let model; // ExamineViewModel
-// userName = User.Identity.Name,
-// examId = exam.Id,
-// taskId = task.Id,
-// taskTitle = task.Title,
-// taskCond = task.Cond,
-// taskView = task.View,
-// taskLang = LangEncode(task.Lang),
-// restTime = ticket != null ? ticket.GetRestTime().ToString("mm\\:ss") : "",
-// ticketId = ticket != null ? ticket.Id : 0
-
-
+// globals -------
+const tss_channel = vscode.window.createOutputChannel("TSS");
+let model; // {userName, examId, taskId, taskTitle, taskCond, taskView, taskLang, restTime, ticketId}
 let last_text = null;
 let log = null; // список списков изменений
-// Output channel TSS
-let tss_channel = vscode.window.createOutputChannel("TSS");
-let timer_log, timer_time;
+let timer_log;
+let timer_time;
 
 //#region commands
 
@@ -109,6 +98,8 @@ function lang_suit(la) {
 
 //#endregion utils
 
+//#region funcs
+
 function start_work() 
 {
 	let {lang, open, close} = lang_suit(model.taskLang);
@@ -121,7 +112,6 @@ function start_work()
 	timer_log = setInterval(changes_to_memory, TIME_INTERVAL * 1000);
 	timer_time = setInterval(renew_time, TIME_INTERVAL * 2000, TIME_INTERVAL * 2) ;	
 }
-
 
 //
 function after_checking({ restTime, message })
@@ -177,6 +167,7 @@ function renew_time(t) {
 	}
 }
 
+//#endregion
 
 /**
  * @param {vscode.ExtensionContext} context

@@ -17,6 +17,22 @@
 
 	"contributes": {
 
+		"configuration": {
+			"title": "tss",
+			"properties": {
+			  "tss.host": {
+				"type": "string",
+				"default": "tss.co.ua",
+				"description": "Tss host."
+			  },
+			  "tss.port": {
+				"type": "number",
+				"default": 5556,
+				"description": "Tss port."
+			  }
+			}
+		},
+
 		"commands": [
 			{
 				"command": "codetss.loginCommand",

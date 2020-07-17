@@ -1,11 +1,15 @@
 // const vscode = require('vscode');
 const querystring = require('querystring');
 const http = require('http');
+const vscode = require('vscode');
 
-//const HOST = 'tss.co.ua';
-//const PORT = 5555;
-const HOST = 'localhost';
-const PORT = 49847;
+const config = vscode.workspace.getConfiguration('tss');
+const HOST = config.host;
+const PORT = config.port;
+// const HOST = 'tss.co.ua';
+// const PORT = 5556;
+// const HOST = 'localhost';
+// const PORT = 49847;
 
 let TOKEN;
 
