@@ -4,12 +4,13 @@ const http = require('http');
 const vscode = require('vscode');
 
 const config = vscode.workspace.getConfiguration('tss');
-const HOST = config.host;
-const PORT = config.port;
+// const HOST = config.host;
+// const PORT = config.port;
+
 // const HOST = 'tss.co.ua';
 // const PORT = 5556;
-// const HOST = 'localhost';
-// const PORT = 49847;
+const HOST = 'localhost';
+const PORT = 49847;
 
 let TOKEN;
 
@@ -121,7 +122,7 @@ function check(ticketId, userAnswer, log)
     var options = {
       hostname: HOST,
       port: PORT,
-      path: '/examstud/check',
+      path: '/taskexam/check',
       method: 'POST',
       headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -166,7 +167,7 @@ function uppload_code_log(ticket_id, log)
     var options = {
       hostname: HOST,
       port: PORT,
-      path: '/examstud/log',
+      path: '/taskexam/log',
       method: 'POST',   
       headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
