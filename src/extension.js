@@ -55,9 +55,9 @@ function cmd_check() {
 //
 function cmd_help() {
 	const help = 
-	`    LOGIN
-	CHECK
-	HELP`;
+	`    PIN - ввести код, предоставленный в окне условия задачи в системе TSS
+	CHECK - отправить на проверку выделенный блок кода
+	`;
 	tss_channel.appendLine(help);
 	vscode.window.showInformationMessage('See help in TSS channel.');
 }
@@ -76,7 +76,10 @@ function start_work()
 	// Start logging 
 	clear_log();
 	timer_log = setInterval(changes_to_memory, TIME_INTERVAL * 1000);
-	timer_time = setInterval(renew_time, TIME_INTERVAL * 2000, TIME_INTERVAL * 2) ;	
+	// Start timing if exam
+	if (model.examId) {
+	    timer_time = setInterval(renew_time, TIME_INTERVAL * 2000, TIME_INTERVAL * 2) ;	
+	}
 }
 
 //

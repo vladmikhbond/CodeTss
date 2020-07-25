@@ -7,13 +7,10 @@ const config = vscode.workspace.getConfiguration('tss');
 const HOST = config.host;
 const PORT = config.port;
 
-
-// const HOST = 'localhost';
-// const PORT = 49847;  // Exam30
-
 let TOKEN;
 
-// 
+// {pin} => {pin_token: JWT,  exam_model: модель задачи}
+//
 function token(pin) 
 {
     return new Promise(function(resolve, reject) {
@@ -34,8 +31,8 @@ function token(pin)
         };
           
         var req = http.request(options, (res) => {
-          if (res.statusCode > 299)
-              reject('Wrong pin.');
+          if (res.statusCode != 200)
+              reject('Wrong pin. StatusCode=' + res.statusCode);
 
           let data = "";
           
@@ -58,55 +55,7 @@ function token(pin)
     });
 }
 
-
-function details_code(examId=-1) 
-{
-    return new Promise(function(resolve, reject) {
-
-      var postData = querystring.stringify({
-        'examId' : examId, 
-      });
-
-      var options = {
-        hostname: HOST,
-        port: PORT,
-        path: '/examstud/detailscode',
-        method: 'POST',
-        headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-              'Content-Length': postData.length,
-              'Authorization': "Bearer " + TOKEN
-        }
-      };
-        
-      var req = http.request(options, (res) => {
-        if (res.statusCode != 200)
-            reject(`Something wrong. StatusCode ${res.statusCode}`);
-
-        let data = "";
-        
-        res.on('data', (d) => {
-          data += d.toString();
-        });
-        
-        res.on('end', () => {    
-          let model = JSON.parse(data); 
-          if (typeof(model) === "object")               
-              resolve(model);
-          else
-              reject(model);
-        });
-
-      });
-      
-      req.on('error', reject);
-            
-      req.write(postData);
-      req.end();
-  });
-}
-
-// result of checking: {message, restTime}
+// {ticketId, userAnswer, log, sender} =>  {message, restTime}
 //
 function check(ticketId, userAnswer, log) 
 {
@@ -153,6 +102,7 @@ function check(ticketId, userAnswer, log)
   });
 }
 
+// {ticketId, log, sender} =>  {}
 //
 function uppload_code_log(ticket_id, log) 
 {
@@ -188,7 +138,6 @@ function uppload_code_log(ticket_id, log)
 
 module.exports = {
     token,
-    details_code,
     check,   
     uppload_code_log
 }
