@@ -4,13 +4,12 @@ const http = require('http');
 const vscode = require('vscode');
 
 const config = vscode.workspace.getConfiguration('tss');
-// const HOST = config.host;
-// const PORT = config.port;
+const HOST = config.host;
+const PORT = config.port;
 
-// const HOST = 'tss.co.ua';
-// const PORT = 5556;
-const HOST = 'localhost';
-const PORT = 49847;
+
+// const HOST = 'localhost';
+// const PORT = 49847;  // Exam30
 
 let TOKEN;
 
@@ -46,8 +45,8 @@ function token(pin)
           
           res.on('end', () => {
             let obj = JSON.parse(data);
-            TOKEN = obj["pin_token"];
-            resolve(obj);  // resolve  
+            TOKEN = obj.pin_token;
+            resolve(obj.exam_model);  // resolve  
           });
 
         });

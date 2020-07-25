@@ -9,7 +9,7 @@ const SEP_STATE = "@#$";
 
 // globals -------
 const tss_channel = vscode.window.createOutputChannel("TSS");
-let model; // {userName, examId, taskId, taskTitle, taskCond, taskView, taskLang, restTime, ticketId}
+let model; // {ticketId, userName, taskId, taskTitle, taskCond, taskView, taskLang, restSeconds }
 let last_text = null;
 let log = null; // список списков изменений
 let timer_log;
@@ -23,9 +23,9 @@ function cmd_login() {
 	vscode.window.showInputBox({prompt: "Input pin ", placeHolder: "pin"}).then( (pin) => {
 					
 		web.token(pin)
-		.then((obj) => {
+		.then((data) => {
 			// save model to globals
-			model = obj.exam_model;
+			model = data;
 			start_work();
 		})
 		.catch(vscode.window.showErrorMessage);	
@@ -63,40 +63,6 @@ function cmd_help() {
 }
 
 //#endregion  commands
-
-//#region utils
-
-function clear_log() {
-	log = [];
-	last_text = "";
-}
-
-
-function seconds2timeStr(n) {
-    let sec = n % 60;
-    let min = (n - sec) / 60;
-    return `Rest time: ${min}' ${sec}"`;
-}
-
-// символы комментария в условии зависят от языка задачи
-function lang_suit(la) {
-	const dict = {
-		'csharp': {'lang': 'csharp', 'open' : '/*', 'close' : '*/'}, 
-		'python': {'lang': 'python', 'open' : '"""', 'close' : '"""'}, 
-		'javascript': {'lang': 'javascript', 'open' : '/*', 'close' : '*/'}, 
-		'haskell': {'lang': 'haskell', 'open' : '{-', 'close' : '-}'}, 
-	};
-	return dict[la] ? dict[la] : dict['csharp'];
-}
-
-// function atob(a) {
-//     return Buffer.from(a).toString('base64');
-// }
-// function btoa(b) {
-//     return Buffer.from(b, 'base64').toString('ascii');
-// }
-
-//#endregion utils
 
 //#region funcs
 
@@ -163,11 +129,39 @@ function renew_time(t) {
 	vscode.window.showInformationMessage(seconds2timeStr(model.restSeconds));
 	if (model.restSeconds < 0) {
 		// fake check to close ticket
-		web.check(model.examId, "xxx");
+		web.check(model.ticketId, "xxx");
 	}
 }
 
 //#endregion
+
+//#region utils
+
+function clear_log() {
+	log = [];
+	last_text = "";
+}
+
+
+function seconds2timeStr(n) {
+    let sec = n % 60;
+    let min = (n - sec) / 60;
+    return `Rest time: ${min}' ${sec}"`;
+}
+
+// символы комментария в условии зависят от языка задачи
+function lang_suit(la) {
+	const dict = {
+		'csharp': {'lang': 'csharp', 'open' : '/*', 'close' : '*/'}, 
+		'python': {'lang': 'python', 'open' : '"""', 'close' : '"""'}, 
+		'javascript': {'lang': 'javascript', 'open' : '/*', 'close' : '*/'}, 
+		'haskell': {'lang': 'haskell', 'open' : '{-', 'close' : '-}'}, 
+	};
+	return dict[la] ? dict[la] : dict['csharp'];
+}
+
+//#endregion utils
+
 
 /**
  * @param {vscode.ExtensionContext} context
