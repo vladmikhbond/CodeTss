@@ -70,7 +70,7 @@ function check(ticketId, userAnswer, log)
     var options = {
       hostname: HOST,
       port: PORT,
-      path: '/taskexam/check',
+      path: '/task/check',
       method: 'POST',
       headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -116,7 +116,7 @@ function uppload_code_log(ticket_id, log)
     var options = {
       hostname: HOST,
       port: PORT,
-      path: '/taskexam/log',
+      path: '/task/log',
       method: 'POST',   
       headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
