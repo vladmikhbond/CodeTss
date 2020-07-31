@@ -3,7 +3,7 @@ const dif = require('./inc_diff');
 const web = require('./web');
 
 
-// super globals (shared with another app) --------
+// super globals (shared with another apps) --------
 const TIME_INTERVAL = 5; // sec
 const SEP_STATE = "@#$"; 
 
@@ -28,7 +28,9 @@ function cmd_login() {
 			model = data;
 			start_work();
 		})
-		.catch(vscode.window.showErrorMessage);	
+		.catch((err) => { 
+			vscode.window.showErrorMessage(err.code); 
+		});	
 	});
 }
 
@@ -47,18 +49,15 @@ function cmd_check() {
 		vscode.window.showInformationMessage('WAIT');	
 		web.check(model.ticketId, userAnswer, log)
 			.then(after_checking)
-			.catch(vscode.window.showErrorMessage);
+			.catch((err) => { 
+				vscode.window.showErrorMessage(err.code); 
+			});	
 	}	
 }
 
-// Check - send answer and log
-//
+
 function cmd_help() {
-	const help = 
-	`    PIN - ввести код, предоставленный в окне условия задачи в системе TSS
-	CHECK - отправить на проверку выделенный блок кода
-	`;
-	tss_channel.appendLine(help);
+	tss_channel.appendLine(help_text);
 	vscode.window.showInformationMessage('See help in TSS channel.');
 }
 
@@ -190,3 +189,27 @@ module.exports = {
 	deactivate
 }
 
+const help_text = 
+`Начать решать задачу (экзаменационную или домашнюю) необходимо в приложениях TSS.
+Там в окне задачи справа вверху будет находиться пин-код задачи (темно-красного цвета).
+Его надо скопировать в буфер обмена, после чего выполнить команду PIN данного расширения.
+
+Команды
+------- 
+PIN - откроется поле ввода, в него надо поместить пин-код и нажать Enter.
+Спустя несколько секунд откроется новое окно редактирования с условием задачи в виде комментария.
+В этом окне и нужно решать задачу.
+     
+CHECK - код из окна редактирования отправляется на проверку. 
+При этом оправляется не весь текст, а только его выделенная часть.
+Результат проверки появится в сообщении.
+
+Нестандартные ситуации
+----------------------
+После запука VS Code в ответ на команду PIN появляется сообщение "command ...not found"
+  - расширение не успело загрузиться, подождите несколько секунд и повторите команду.
+Закрыты все окна редактирования и команды PIN и CHECK не видны
+  - откройте любое окно редактирования
+В ответ на комнду PIN приходит сообщение ECONNREFUSED
+  - причина может быть в неверном пин-коде или в неверной конфигурации расширения (неправильные хост и порт) 
+`;
