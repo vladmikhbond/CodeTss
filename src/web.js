@@ -1,7 +1,6 @@
-// const vscode = require('vscode');
+const vscode = require('vscode');
 const querystring = require('querystring');
 const http = require('http');
-const vscode = require('vscode');
 
 const config = vscode.workspace.getConfiguration('tss');
 const HOST = config.host;
