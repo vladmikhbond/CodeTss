@@ -1,6 +1,6 @@
 {
 	"name": "codetss",
-	"displayName": "Code TSS",
+	"displayName": "CS Code TSS",
 	"description": "",
 	"version": "0.0.2",
 	"publisher": "tss",
@@ -22,12 +22,12 @@
 			"properties": {
 			  "tss.host": {
 				"type": "string",
-				"default": "tss.co.ua",
+				"default": "localhost",
 				"description": "Tss host."
 			  },
 			  "tss.port": {
 				"type": "number",
-				"default": 5556,
+				"default": 49847,
 				"description": "Tss port."
 			  }
 			}
@@ -35,7 +35,7 @@
 
 		"commands": [
 			{
-				"command": "codetss.loginCommand",
+				"command": "codetss.pinCommand",
 				"title": "  PIN"
 			},
 			{
@@ -52,7 +52,7 @@
 		"menus": {
 			"editor/title": [
 				{
-				  "command": "codetss.loginCommand",
+				  "command": "codetss.pinCommand",
 				  "group": "navigation"
 				},
 				{

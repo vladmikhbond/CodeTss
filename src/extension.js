@@ -17,9 +17,9 @@ let timer_time;
 
 //#region commands
 
-// Login - input login & pass, get and save a ticket
+// Pin - input pin, get and save a model (see above)
 // 
-function cmd_login() {	
+function cmd_pin() {	
 	vscode.window.showInputBox({prompt: "Input pin ", placeHolder: "pin"}).then( (pin) => {
 					
 		web.token(pin)
@@ -78,8 +78,9 @@ function start_work()
 	timer_log = setInterval(changes_to_memory, TIME_INTERVAL * 1000);
 	// Start timing if exam
 	if (model.examId) {
-	    timer_time = setInterval(renew_time, TIME_INTERVAL * 2000, TIME_INTERVAL * 2) ;	
+	    timer_time = setInterval(renew_time, TIME_INTERVAL * 1000 * 60) ;	
 	}
+	tss_channel.show();
 }
 
 //
@@ -127,10 +128,9 @@ function changes_to_memory(state) {
 	log.push(increment);	
 }
 
-function renew_time(t) {
-	model.restSeconds -= t;
+function renew_time() {
 	vscode.window.showInformationMessage(seconds2timeStr(model.restSeconds));
-	if (model.restSeconds < 0) {
+	if (model.restSeconds < -2) {
 		// fake check to close ticket
 		web.check(model.ticketId, "xxx");
 	}
@@ -173,7 +173,7 @@ function lang_suit(la) {
  function activate(context) 
  {	 
     // Регистрация команд
-	let disposable = vscode.commands.registerCommand('codetss.loginCommand', cmd_login);
+	let disposable = vscode.commands.registerCommand('codetss.pinCommand', cmd_pin);
 	context.subscriptions.push(disposable);
 	disposable = vscode.commands.registerCommand('codetss.checkCommand', cmd_check);
 	context.subscriptions.push(disposable);	
