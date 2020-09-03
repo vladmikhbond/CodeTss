@@ -30,8 +30,9 @@ function token(pin)
         };
           
         var req = http.request(options, (res) => {
-          if (res.statusCode != 200)
-              reject('Wrong pin. StatusCode=' + res.statusCode);
+          if (res.statusCode != 200) {
+              reject(`${res.statusCode} - ${res.statusMessage}`);
+          }
 
           let data = "";
           
@@ -47,7 +48,9 @@ function token(pin)
 
         });
         
-        req.on('error', reject);
+        req.on('error', e => { 
+          reject(e.message); 
+        });
         
         req.write(postData);
         req.end();

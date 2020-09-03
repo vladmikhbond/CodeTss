@@ -22,12 +22,12 @@
 			"properties": {
 			  "tss.host": {
 				"type": "string",
-				"default": "localhost",
+				"default": "tss.co.ua",
 				"description": "Tss host."
 			  },
 			  "tss.port": {
 				"type": "number",
-				"default": 49847,
+				"default": 5556,
 				"description": "Tss port."
 			  }
 			}

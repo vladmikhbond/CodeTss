@@ -28,9 +28,7 @@ function cmd_pin() {
 			model = data;
 			start_work();
 		})
-		.catch((err) => { 
-			vscode.window.showErrorMessage(err.code); 
-		});	
+		.catch(vscode.window.showErrorMessage);	
 	});
 }
 
