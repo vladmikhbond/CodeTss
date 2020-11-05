@@ -83,9 +83,9 @@ function check(ticketId, userAnswer, log)
 
     var req = http.request(options, (res) => {
         
-      if (res.statusCode > 299)
-           reject(res.statusMessage);
-
+        if (res.statusCode > 299) {
+            reject(res.statusMessage);
+        }
         let data = '';
         
         res.on('data', (d) => {
@@ -109,13 +109,13 @@ function check(ticketId, userAnswer, log)
 function uppload_code_log(ticket_id, log) 
 {
   return new Promise(function(resolve, reject) {
-    var postData = querystring.stringify({
+    let postData = querystring.stringify({
       'ticketId' : ticket_id, 
       'log': JSON.stringify(log),
       'sender': 'code'         
     });
   
-    var options = {
+    let options = {
       hostname: HOST,
       port: PORT,
       path: '/task/log',
@@ -127,8 +127,13 @@ function uppload_code_log(ticket_id, log)
         }
     };
   
-    var req = http.request(options, (res) => {
-      res.on('end', resolve);
+    let req = http.request(options, (res) => {
+        if (res.statusCode > 299) {
+            reject(res.statusMessage);
+        }
+        res.on('end', function() { 
+          resolve(); 
+        });
     });
     
     req.on('error', reject);

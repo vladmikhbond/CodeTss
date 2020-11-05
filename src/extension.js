@@ -91,9 +91,9 @@ function after_checking({ restTime, message })
 	changes_to_memory(message);
 	let ok = message.indexOf("OK") === 0;
 	if (ok) {
+		vscode.window.showInformationMessage(message); 
         // to save last message
 		web.uppload_code_log(model.ticketId, log);
-		vscode.window.showInformationMessage(message); 
 		epilog();
 	} else {
 		vscode.window.showErrorMessage(message);
@@ -103,11 +103,12 @@ function after_checking({ restTime, message })
 }
 
 function epilog() {
+	clearInterval(timer_log);	
+	clearInterval(timer_time);
+    // close editor 
 	setTimeout(function () {
         vscode.commands.executeCommand('workbench.action.closeActiveEditor');
 	}, 3000);
-	clearInterval(timer_log);	
-	clearInterval(timer_time);
 }
 
 function changes_to_memory(state) {
