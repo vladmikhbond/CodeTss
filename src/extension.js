@@ -9,7 +9,7 @@ const SEP_STATE = "@#$";
 
 // globals -------
 const tss_channel = vscode.window.createOutputChannel("TSS");
-let model; // {ticketId, userName, taskId, taskTitle, taskCond, taskView, taskLang, restSeconds }
+let model; // {ticketId, examId, userName, taskId, taskTitle, taskCond, taskView, taskLang, restSeconds }
 let last_text = null;
 let log = null; // список списков изменений
 let timer_log;
@@ -90,16 +90,20 @@ function after_checking({ restTime, message })
 	clear_log();
 	changes_to_memory(message);
 	let ok = message.indexOf("OK") === 0;
-	if (ok) {
+	if (ok) 
+	{
 		vscode.window.showInformationMessage(message); 
-        // to save last message
-		web.uppload_code_log(model.ticketId, log);
-		epilog();
-	} else {
+        // to save last check result in log 
+		web.uppload_code_log(model.ticketId, log)
+		    .then(epilog);
+	} else 
+	{
 		vscode.window.showErrorMessage(message);
 	}
 	tss_channel.appendLine(message);
-	tss_channel.appendLine("rest time: " + restTime);
+	if (!model.examId) {		
+	    tss_channel.appendLine("rest time: " + restTime);
+	}
 }
 
 function epilog() {

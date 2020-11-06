@@ -30,7 +30,7 @@ function token(pin)
         };
           
         var req = http.request(options, (res) => {
-          if (res.statusCode != 200) {
+          if (res.statusCode > 299) {
               reject(`${res.statusCode} - ${res.statusMessage}`);
           }
 
@@ -104,7 +104,8 @@ function check(ticketId, userAnswer, log)
   });
 }
 
-// {ticketId, log, sender} =>  {}
+// Отправляет накопленный лог на сервер
+// отправитель - 'code'
 //
 function uppload_code_log(ticket_id, log) 
 {
@@ -126,14 +127,13 @@ function uppload_code_log(ticket_id, log)
           'Authorization': "Bearer " + TOKEN
         }
     };
-  
+    // по-видимому, из-за того, чо нет данных, 
     let req = http.request(options, (res) => {
         if (res.statusCode > 299) {
             reject(res.statusMessage);
         }
-        res.on('end', function() { 
-          resolve(); 
-        });
+        // по-видимому, из-за того, что в ответе нет данных, нет и обработчика события 'end'
+        resolve(); 
     });
     
     req.on('error', reject);
