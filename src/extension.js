@@ -37,13 +37,7 @@ function cmd_pin() {
 function cmd_check() {
 	const editor = vscode.window.activeTextEditor;		
 	if (editor) {
-		// check 	
-		const selection = editor.selection;
-		const userAnswer = editor.document.getText(selection);	
-		if (!userAnswer) {
-			vscode.window.showInformationMessage('No user answer');
-			return;
-		}
+		let userAnswer = getAnswer(editor);
 		vscode.window.showInformationMessage('WAIT');	
 		web.check(model.ticketId, userAnswer, log)
 			.then(after_checking)
@@ -51,6 +45,20 @@ function cmd_check() {
 				vscode.window.showErrorMessage(err.code); 
 			});	
 	}	
+}
+
+// Определяется вид ограничителей и из текста редактора извлекается решение задачи
+//         
+function getAnswer(editor)
+{
+	let screen = editor.document.getText();	
+	let regex = lang_suit(model.taskLang).regex;
+	try {
+		let match = regex.exec(screen);
+		return match[2];
+	} catch (err) {
+		return screen;
+	}
 }
 
 
@@ -122,7 +130,8 @@ function changes_to_memory(state) {
 	if (editor.document.fileName.startsWith('extension-output'))
 	   return;
 
-	let next_text = editor.document.getText();
+	//let next_text = editor.document.getText();  // v 0.0.3
+	let next_text = getAnswer(editor);
 	if (state)
 		next_text += SEP_STATE + state;
 		
@@ -155,15 +164,17 @@ function seconds2timeStr(n) {
     return `Rest time: ${min}' ${sec}"`;
 }
 
-// символы комментария в условии зависят от языка задачи
-function lang_suit(la) {
+// Символы комментария в условии и регулярное выражение 
+// зависят от языка задачи
+//
+function lang_suit(lang) {
 	const dict = {
-		'csharp': {'lang': 'csharp', 'open' : '/*', 'close' : '*/'}, 
-		'python': {'lang': 'python', 'open' : '"""', 'close' : '"""'}, 
-		'javascript': {'lang': 'javascript', 'open' : '/*', 'close' : '*/'}, 
-		'haskell': {'lang': 'haskell', 'open' : '{-', 'close' : '-}'}, 
+		'csharp': {'lang': 'csharp', 'open': '/*', 'close': '*/', "regex": /(\/\/BEGIN)([\w\W]*)(\/\/END)/g }, 
+		'python': {'lang': 'python', 'open': '"""', 'close': '"""', "regex": /(#BEGIN)([\w\W]*)(#END)/g }, 
+		'javascript': {'lang': 'javascript', 'open' : '/*', 'close' : '*/', "regex": /(\/\/BEGIN)([\w\W]*)(\/\/END)/g }, 
+		'haskell': {'lang': 'haskell', 'open': '{-', 'close': '-}', "regex": /(--BEGIN)([\w\W]*)(--END)/g }, 
 	};
-	return dict[la] ? dict[la] : dict['csharp'];
+	return dict[lang] ? dict[lang] : dict['csharp'];
 }
 
 //#endregion utils

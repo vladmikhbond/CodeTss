@@ -1,8 +1,8 @@
 {
 	"name": "codetss",
-	"displayName": "CS Code TSS",
+	"displayName": "Code TSS",
 	"description": "",
-	"version": "0.0.3",
+	"version": "0.0.4",
 	"publisher": "tss",
 	"engines": {
 		"vscode": "^1.46.0"
