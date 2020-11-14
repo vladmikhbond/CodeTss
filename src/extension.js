@@ -2,18 +2,19 @@ const vscode = require('vscode');
 const dif = require('./inclog');
 const web = require('./web');
 const help_text = require('./help_text');
+const { clearInterval } = require('timers');
 
 // super globals (shared with another apps) --------
 const TIME_INTERVAL = 5; // sec
 const SEP_STATE = "@#$"; 
 
 // globals -------
-const tss_channel = vscode.window.createOutputChannel("TSS");
+const tssChannel = vscode.window.createOutputChannel("TSS");
 let model; // {ticketId, examId, userName, taskId, taskTitle, taskCond, taskView, taskLang, restSeconds }
-let last_text = null;
+let lastText = null;
 let log = null; // список списков изменений
-let timer_log;
-let timer_time;
+let timerLog = null;
+let timerRestTime = null;
 
 //#region commands
 
@@ -26,7 +27,7 @@ function cmd_pin() {
 		.then((data) => {
 			// save model to globals
 			model = data;
-			start_work();
+			startToSolve();
 		})
 		.catch(vscode.window.showErrorMessage);	
 	});
@@ -40,7 +41,7 @@ function cmd_check() {
 		let userAnswer = getAnswer(editor);
 		vscode.window.showInformationMessage('WAIT');	
 		web.check(model.ticketId, userAnswer, log)
-			.then(after_checking)
+			.then(afterChecking)
 			.catch((err) => { 
 				vscode.window.showErrorMessage(err.code); 
 			});	
@@ -63,8 +64,8 @@ function getAnswer(editor)
 
 
 function cmd_help() {
-	tss_channel.clear();
-	tss_channel.appendLine(help_text.content);
+	tssChannel.clear();
+	tssChannel.appendLine(help_text.content);
 	vscode.window.showInformationMessage('See help in TSS channel.');
 }
 
@@ -72,7 +73,7 @@ function cmd_help() {
 
 //#region funcs
 
-function start_work() 
+function startToSolve() 
 {
 	let {lang, open, close} = lang_suit(model.taskLang);
 	let content = open+"\n" + model.taskCond + "\n"+close+"\n" + model.taskView;
@@ -80,23 +81,25 @@ function start_work()
 	let doc = vscode.workspace.openTextDocument({content, language: lang});
 	vscode.window.showTextDocument(doc);				
 	// Start logging 
-	clear_log();
-	timer_log = setInterval(changes_to_memory, TIME_INTERVAL * 1000);
+	clearLog();
+	if (timerLog) clearInterval(timerLog);
+	timerLog = setInterval(changesToMemory, TIME_INTERVAL * 1000);
 	// Start timing if exam
 	if (model.examId) {
-	    timer_time = setInterval(renew_time, TIME_INTERVAL * 1000 * 60) ;	
+		if (timerRestTime) clearInterval(timerRestTime);
+	    timerRestTime = setInterval(showRestTime, TIME_INTERVAL * 1000 * 60) ;	
 	}
-	tss_channel.show();
+	tssChannel.show();
 }
 
 //
-function after_checking({ restTime, message })
+function afterChecking({ restTime, message })
 {
 	// rest time
 	model.restSeconds = restTime;	
 	// write state to log
-	clear_log();
-	changes_to_memory(message);
+	clearLog();
+	changesToMemory(message);
 	let ok = message.indexOf("OK") === 0;
 	if (ok) 
 	{
@@ -108,22 +111,22 @@ function after_checking({ restTime, message })
 	{
 		vscode.window.showErrorMessage(message);
 	}
-	tss_channel.appendLine(message);
+	tssChannel.appendLine(message);
 	if (!model.examId) {		
-	    tss_channel.appendLine("rest time: " + restTime);
+	    tssChannel.appendLine("rest time: " + restTime);
 	}
 }
 
 function epilog() {
-	clearInterval(timer_log);	
-	clearInterval(timer_time);
+	clearInterval(timerLog);	
+	clearInterval(timerRestTime);
     // close editor 
 	setTimeout(function () {
         vscode.commands.executeCommand('workbench.action.closeActiveEditor');
 	}, 3000);
 }
 
-function changes_to_memory(state) {
+function changesToMemory(state) {
 	const editor = vscode.window.activeTextEditor;		
 	if (!editor)
 		return;
@@ -135,15 +138,16 @@ function changes_to_memory(state) {
 	if (state)
 		next_text += SEP_STATE + state;
 		
-	const increment = dif.changes(last_text, next_text);
-	last_text = next_text;  			
+	const increment = dif.changes(lastText, next_text);
+	lastText = next_text;  			
 	log.push(increment);	
 }
 
-function renew_time() {
+function showRestTime() {
 	vscode.window.showInformationMessage(seconds2timeStr(model.restSeconds));
-	if (model.restSeconds < -2) {
-		// fake check to close ticket
+
+	// fake check exam to close ticket 
+	if (model.restSeconds < -2) {		
 		web.check(model.ticketId, "xxx");
 	}
 }
@@ -152,9 +156,9 @@ function renew_time() {
 
 //#region utils
 
-function clear_log() {
+function clearLog() {
 	log = [];
-	last_text = "";
+	lastText = "";
 }
 
 
@@ -164,7 +168,7 @@ function seconds2timeStr(n) {
     return `Rest time: ${min}' ${sec}"`;
 }
 
-// Символы комментария в условии и регулярное выражение 
+// Символы комментария в условии задачи и регулярное выражение для выделения решения
 // зависят от языка задачи
 //
 function lang_suit(lang) {

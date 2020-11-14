@@ -127,7 +127,7 @@ function uppload_code_log(ticket_id, log)
           'Authorization': "Bearer " + TOKEN
         }
     };
-    // по-видимому, из-за того, чо нет данных, 
+
     let req = http.request(options, (res) => {
         if (res.statusCode > 299) {
             reject(res.statusMessage);
