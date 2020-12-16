@@ -14,7 +14,7 @@ let model; // {ticketId, examId, userName, taskId, taskTitle, taskCond, taskView
 let lastText = null;
 let log = null; // список списков изменений
 let timerLog = null;
-let timerRestTime = null;
+let timerPeriodical = null;
 
 //#region commands
 
@@ -39,7 +39,7 @@ function cmd_check() {
 	const editor = vscode.window.activeTextEditor;		
 	if (editor) {
 		let userAnswer = getAnswer(editor);
-		vscode.window.showInformationMessage('WAIT');	
+		//vscode.window.showInformationMessage('WAIT');	
 		web.check(model.ticketId, userAnswer, log)
 			.then(afterChecking)
 			.catch((err) => { 
@@ -84,10 +84,17 @@ function startToSolve()
 	clearLog();
 	if (timerLog) clearInterval(timerLog);
 	timerLog = setInterval(changesToMemory, TIME_INTERVAL * 1000);
-	// Start timing if exam
+	// Start display rest time if exam
 	if (model.examId) {
-		if (timerRestTime) clearInterval(timerRestTime);
-	    timerRestTime = setInterval(showRestTime, TIME_INTERVAL * 1000 * 60) ;	
+		if (timerPeriodical) {
+			clearInterval(timerPeriodical);
+		}
+	    timerPeriodical = setInterval( function() {		
+			// extra check exam to close ticket 
+			if (model.restSeconds < -2) {		
+				cmd_check();
+			}
+		}, TIME_INTERVAL * 1000 * 60) ;	// 1'
 	}
 	tssChannel.show();
 }
@@ -112,14 +119,14 @@ function afterChecking({ restTime, message })
 		vscode.window.showErrorMessage(message);
 	}
 	tssChannel.appendLine(message);
-	if (!model.examId) {		
-	    tssChannel.appendLine("rest time: " + restTime);
+	if (model.examId) {
+		showRestTime();
 	}
 }
 
 function epilog() {
 	clearInterval(timerLog);	
-	clearInterval(timerRestTime);
+	clearInterval(timerPeriodical);
     // close editor 
 	setTimeout(function () {
         vscode.commands.executeCommand('workbench.action.closeActiveEditor');
@@ -144,12 +151,12 @@ function changesToMemory(state) {
 }
 
 function showRestTime() {
-	vscode.window.showInformationMessage(seconds2timeStr(model.restSeconds));
+	let sec = model.restSeconds % 60;
+    let min = (model.restSeconds - sec) / 60;
+    let timeStr = `Rest time: ${min}' ${sec}"`;
 
-	// fake check exam to close ticket 
-	if (model.restSeconds < -2) {		
-		web.check(model.ticketId, "xxx");
-	}
+	vscode.window.showInformationMessage(timeStr);
+	tssChannel.appendLine(timeStr);	
 }
 
 //#endregion
@@ -161,12 +168,6 @@ function clearLog() {
 	lastText = "";
 }
 
-
-function seconds2timeStr(n) {
-    let sec = n % 60;
-    let min = (n - sec) / 60;
-    return `Rest time: ${min}' ${sec}"`;
-}
 
 // Символы комментария в условии задачи и регулярное выражение для выделения решения
 // зависят от языка задачи
