@@ -2,7 +2,7 @@
 	"name": "codetss",
 	"displayName": "Code TSS",
 	"description": "",
-	"version": "0.0.4",
+	"version": "0.0.5",
 	"publisher": "tss",
 	"engines": {
 		"vscode": "^1.46.0"

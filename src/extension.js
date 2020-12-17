@@ -39,7 +39,7 @@ function cmd_check() {
 	const editor = vscode.window.activeTextEditor;		
 	if (editor) {
 		let userAnswer = getAnswer(editor);
-		//vscode.window.showInformationMessage('WAIT');	
+
 		web.check(model.ticketId, userAnswer, log)
 			.then(afterChecking)
 			.catch((err) => { 
@@ -53,11 +53,12 @@ function cmd_check() {
 function getAnswer(editor)
 {
 	let screen = editor.document.getText();	
-	let regex = lang_suit(model.taskLang).regex;
+	let suit = lang_suit(model.taskLang);
 	try {
-		let match = regex.exec(screen);
+		let match = suit.regex.exec(screen);
 		return match[2];
 	} catch (err) {
+        vscode.window.showInformationMessage(`Поставьте ограничители решения ${suit.bounds}`);	
 		return screen;
 	}
 }
@@ -174,10 +175,10 @@ function clearLog() {
 //
 function lang_suit(lang) {
 	const dict = {
-		'csharp': {'lang': 'csharp', 'open': '/*', 'close': '*/', "regex": /(\/\/BEGIN)([\w\W]*)(\/\/END)/g }, 
-		'python': {'lang': 'python', 'open': '"""', 'close': '"""', "regex": /(#BEGIN)([\w\W]*)(#END)/g }, 
-		'javascript': {'lang': 'javascript', 'open' : '/*', 'close' : '*/', "regex": /(\/\/BEGIN)([\w\W]*)(\/\/END)/g }, 
-		'haskell': {'lang': 'haskell', 'open': '{-', 'close': '-}', "regex": /(--BEGIN)([\w\W]*)(--END)/g }, 
+		'csharp': {'lang': 'csharp', 'open': '/*', 'close': '*/', "regex": /(\/\/BEGIN)([\w\W]*)(\/\/END)/g, bounds:'//BEGIN...//ENG' }, 
+		'python': {'lang': 'python', 'open': '"""', 'close': '"""', "regex": /(#BEGIN)([\w\W]*)(#END)/g, bounds:'#BEGIN...#ENG'  }, 
+		'javascript': {'lang': 'javascript', 'open' : '/*', 'close' : '*/', "regex": /(\/\/BEGIN)([\w\W]*)(\/\/END)/g, bounds:'//BEGIN...//ENG'  }, 
+		'haskell': {'lang': 'haskell', 'open': '{-', 'close': '-}', "regex": /(--BEGIN)([\w\W]*)(--END)/g, bounds:'--BEGIN...--ENG'  }, 
 	};
 	return dict[lang] ? dict[lang] : dict['csharp'];
 }
