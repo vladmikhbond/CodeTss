@@ -21,16 +21,16 @@ let timerPeriodical = null;
 // Pin - input pin, get and save a model (see above)
 // 
 function cmd_pin() {	
-	vscode.window.showInputBox({prompt: "Input pin ", placeHolder: "pin"}).then( (pin) => {
-					
-		web.token(pin)
-		.then((data) => {
-			// save model to globals
-			model = data;
-			startToSolve();
-		})
-		.catch(vscode.window.showErrorMessage);	
-	});
+	vscode.window.showInputBox({prompt: "Input pin ", placeHolder: "pin"})
+		.then( (pin) => {				
+			web.token(pin)
+			.then((data) => {
+				// save model to globals
+				model = data;
+				afterPinCommand();
+			})
+			.catch(vscode.window.showErrorMessage);	
+		});
 }
 
 // Check - send answer and log
@@ -41,26 +41,29 @@ function cmd_check() {
 		let userAnswer = getAnswer(editor);
 
 		web.check(model.ticketId, userAnswer, log)
-			.then(afterChecking)
+			.then(afterCheckCommand)
 			.catch((err) => { 
 				vscode.window.showErrorMessage(err.code); 
 			});	
 	}	
 }
 
-// Определяется вид ограничителей и из текста редактора извлекается решение задачи
-//         
+
+// Если есть преподавательские скобки, возвращается их содержимое.
+// Если их нет, возвращается все, кроме условия задачи в первом многострочном комменте.
+//
 function getAnswer(editor)
 {
+	let {cond, brackets} = lang_suit(model.taskLang);
 	let screen = editor.document.getText();	
-	let suit = lang_suit(model.taskLang);
-	try {
-		let match = suit.regex.exec(screen);
-		return match[2];
-	} catch (err) {
-        vscode.window.showInformationMessage(`Поставьте ограничители решения ${suit.bounds}`);	
-		return screen;
+    
+	let match = brackets.exec(screen);
+	if (match) {
+	    return match[2];
 	}
+	// remove a problem condition
+	screen = screen.replace(cond, "");
+	return screen;
 }
 
 
@@ -74,17 +77,22 @@ function cmd_help() {
 
 //#region funcs
 
-function startToSolve() 
+async function afterPinCommand() 
 {
+	// Show the problem in a new editor
 	let {lang, open, close} = lang_suit(model.taskLang);
 	let content = open+"\n" + model.taskCond + "\n"+close+"\n" + model.taskView;
-
 	let doc = vscode.workspace.openTextDocument({content, language: lang});
-	vscode.window.showTextDocument(doc);				
+	await vscode.window.showTextDocument(doc);
+
+    // save to disk
+	// await vscode.commands.executeCommand('workbench.action.files.saveAs');
+	
 	// Start logging 
 	clearLog();
 	if (timerLog) clearInterval(timerLog);
 	timerLog = setInterval(changesToMemory, TIME_INTERVAL * 1000);
+
 	// Start display rest time if exam
 	if (model.examId) {
 		if (timerPeriodical) {
@@ -101,7 +109,7 @@ function startToSolve()
 }
 
 //
-function afterChecking({ restTime, message })
+function afterCheckCommand({ restTime, message })
 {
 	// rest time
 	model.restSeconds = restTime;	
@@ -141,7 +149,6 @@ function changesToMemory(state) {
 	if (editor.document.fileName.startsWith('extension-output'))
 	   return;
 
-	//let next_text = editor.document.getText();  // v 0.0.3
 	let next_text = getAnswer(editor);
 	if (state)
 		next_text += SEP_STATE + state;
@@ -175,10 +182,18 @@ function clearLog() {
 //
 function lang_suit(lang) {
 	const dict = {
-		'csharp': {'lang': 'csharp', 'open': '/*', 'close': '*/', "regex": /(\/\/BEGIN)([\w\W]*)(\/\/END)/g, bounds:'//BEGIN...//ENG' }, 
-		'python': {'lang': 'python', 'open': '"""', 'close': '"""', "regex": /(#BEGIN)([\w\W]*)(#END)/g, bounds:'#BEGIN...#ENG'  }, 
-		'javascript': {'lang': 'javascript', 'open' : '/*', 'close' : '*/', "regex": /(\/\/BEGIN)([\w\W]*)(\/\/END)/g, bounds:'//BEGIN...//ENG'  }, 
-		'haskell': {'lang': 'haskell', 'open': '{-', 'close': '-}', "regex": /(--BEGIN)([\w\W]*)(--END)/g, bounds:'--BEGIN...--ENG'  }, 
+		'csharp': {'lang': 'csharp', 'open': '/*', 'close': '*/', 
+		       "cond": /\/\*.*\*\//usg,
+		       "brackets": /(\/\/BEGIN)(.*)(\/\/END)/usg }, 
+		'python': {'lang': 'python', 'open': '"""', 'close': '"""', 
+		       "cond": /""".*"""/usg,
+		       "brackets": /(#BEGIN)(.*)(#END)/usg  }, 
+		'javascript': {'lang': 'javascript', 'open' : '/*', 'close' : '*/', 
+			   "cond": /\/\*.*\*\//usg,
+		       "brackets": /(\/\/BEGIN)(.*)(\/\/END)/usg }, 
+		'haskell': {'lang': 'haskell', 'open': '{-', 'close': '-}', 
+		       "cond": /\{-.*-\}/usg,
+		       "brackets": /(--BEGIN)(.*)(--END)/usg }, 
 	};
 	return dict[lang] ? dict[lang] : dict['csharp'];
 }
