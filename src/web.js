@@ -1,6 +1,6 @@
 const vscode = require('vscode');
 const querystring = require('querystring');
-const http = require('http');
+const http = require('https');
 
 const config = vscode.workspace.getConfiguration('tss');
 const HOST = config.host;
