@@ -18,7 +18,7 @@ let timerPeriodical = null;
 
 //#region commands
 
-// Pin - input pin, get and save a model (see above)
+// Pin - input pin, get a model (see above) and save it
 // 
 function cmd_pin() {	
 	vscode.window.showInputBox({prompt: "Input pin ", placeHolder: "pin"})
