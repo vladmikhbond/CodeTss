@@ -227,10 +227,9 @@ function lang_suit(lang) {
 
     //
 	disposable = vscode.window.onDidChangeWindowState(e => {
-        if (!e.focused) {
-			changesToMemory('Wrong. LOST FOCUSE');
-			vscode.window.showErrorMessage('LOST FOCUSE.');
-		}
+		let message = e.focused ? 'GET FOCUSE' : 'LOST FOCUSE';
+		changesToMemory('Wrong. ' + message);
+		vscode.window.showErrorMessage(message);
 	});
 	context.subscriptions.push(disposable);	
 
