@@ -8,13 +8,16 @@ const { clearInterval } = require('timers');
 const INTERVAL_IN_SEC = 5; // sec
 const SEP_STATE = "@#$"; 
 
-// globals -------
+// globals for the module -------
 const tssChannel = vscode.window.createOutputChannel("TSS");
 let model; // {ticketId, examId, userName, taskId, taskTitle, taskCond, taskView, taskLang, restSeconds }
 let lastText = null;
 let log = null; // список списков изменений
 let timerLog = null;
 let timerPeriodical = null;
+let theEditor = null;
+// --------------------------------------
+
 
 //#region commands
 
@@ -35,13 +38,17 @@ async function cmd_pin() {
 // CHECK - send solving and log
 //
 async function cmd_check() {
-	const editor = vscode.window.activeTextEditor;		
-	if (!editor) 
-	   return;
+	const activeEditor = vscode.window.activeTextEditor;	
+
+	if (activeEditor != theEditor) {
+		vscode.window.showErrorMessage('Wrong editor window.');
+		return;	
+	} 
+
 	try {
-		let userSolving = getAnswer(editor);
+		let userSolving = getAnswer(theEditor);
         let obj = await web2.check(model.ticketId, userSolving, log)
-		afterWebCheckCommand(obj); 
+		await afterWebCheckCommand(obj); 
 	} catch(err) {
 		vscode.window.showErrorMessage(err.code); 
 	}
@@ -66,8 +73,8 @@ async function afterWebPinCommand()
 	// Show the problem in a new editor
 	let {lang, open, close} = lang_suit(model.taskLang);
 	let content = open+"\n" + model.taskCond + "\n" + close + "\n" + model.taskView;
-	let doc = vscode.workspace.openTextDocument({content, language: lang});
-	await vscode.window.showTextDocument(doc);
+	let doc = await vscode.workspace.openTextDocument({content, language: lang});
+	theEditor = await vscode.window.showTextDocument(doc);
 
     // save to disk ??
 	// await vscode.commands.executeCommand('workbench.action.files.saveAs');
@@ -215,13 +222,24 @@ function lang_suit(lang) {
  {	 
     // Регистрация команд
 	let disposable = vscode.commands.registerCommand('codetss.pinCommand', cmd_pin);
-	context.subscriptions.push(disposable);
+	context.subscriptions.push(disposable);  // Make sure to dispose of the object when the extension is deactivated
 	disposable = vscode.commands.registerCommand('codetss.checkCommand', cmd_check);
 	context.subscriptions.push(disposable);	
 	disposable = vscode.commands.registerCommand('codetss.helpCommand', cmd_help);
 	context.subscriptions.push(disposable);	
+
+    //
+	disposable = vscode.window.onDidChangeWindowState(e => {
+        if (!e.focused) {
+			changesToMemory('Wrong. LOST FOCUSE');
+			vscode.window.showErrorMessage('LOST FOCUSE.');
+		}
+	});
+	context.subscriptions.push(disposable);	
+
 }
-exports.activate = activate;
+
+//exports.activate = activate;
 
 
 function deactivate() {}
