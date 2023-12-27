@@ -1,6 +1,5 @@
 const vscode = require('vscode');
 const dif = require('./inclog');
-const web = require('./web');
 const web2 = require('./web2');
 const help_text = require('./help_text');
 const { clearInterval } = require('timers');
@@ -41,7 +40,7 @@ async function cmd_check() {
 	   return;
 	try {
 		let userSolving = getAnswer(editor);
-        let obj = await web.check(model.ticketId, userSolving, log)
+        let obj = await web2.check(model.ticketId, userSolving, log)
 		afterWebCheckCommand(obj); 
 	} catch(err) {
 		vscode.window.showErrorMessage(err.code); 
@@ -110,7 +109,7 @@ async function afterWebCheckCommand({ restTime, message })
 	{
 		vscode.window.showInformationMessage(message); 
         // to save last check result in log 
-		await web.uppload_code_log(model.ticketId, log);
+		await web2.uppload_code_log(model.ticketId, log);
 	    epilog();
 	} else 
 	{

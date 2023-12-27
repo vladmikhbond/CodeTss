@@ -11,3 +11,9 @@
 - Cut off problem condition. BEGIN-END brackets are optional.
 - File is saved as work.js
 - Shows View not Hint. 
+## [0.0.7] - 2023-10-18
+### Changed
+- https protocol.
+## [0.0.8] - 2023-12-28
+### Changed
+- .
