@@ -239,9 +239,6 @@ function lang_suit(lang) {
 
 }
 
-//exports.activate = activate;
-
-
 function deactivate() {}
 
 module.exports = {
