@@ -38,12 +38,9 @@ async function cmd_pin() {
 // CHECK - send solving and log
 //
 async function cmd_check() {
-	const activeEditor = vscode.window.activeTextEditor;	
 
-	if (activeEditor != theEditor) {
-		vscode.window.showErrorMessage('Wrong editor window.');
+	if (!theEditor) 
 		return;	
-	} 
 
 	try {
 		let userSolving = getAnswer(theEditor);
