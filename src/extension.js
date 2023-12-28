@@ -1,6 +1,6 @@
 const vscode = require('vscode');
 const dif = require('./inclog');
-const web2 = require('./web2');
+const web2 = require('./web');
 const help_text = require('./help_text');
 const { clearInterval } = require('timers');
 
@@ -232,8 +232,10 @@ function lang_suit(lang) {
 		vscode.window.showErrorMessage(message);
 	});
 	context.subscriptions.push(disposable);	
-   
-	process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
+    
+	// це, щоб https працював на localhost ===========
+	// process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
+	// ===============================================
 }
 
 function deactivate() {}

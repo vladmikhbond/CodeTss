@@ -1,147 +1,92 @@
 const vscode = require('vscode');
-const querystring = require('querystring');
-const http = require('https');
+const axios = require('axios');
 
 const config = vscode.workspace.getConfiguration('tss');
-const HOST = config.host;
-const PORT = config.port;
 
+const URL = `https://${config.host}:${config.port}`;
+const SENDER = 'code008';
 let TOKEN;
 
 // {pin} => {pin_token: JWT,  exam_model: модель задачи}
 //
-function token(pin) 
+async function token(pin) 
 {
-    return new Promise(function(resolve, reject) {
+  const url = URL + '/api/token_pin';
 
-        var postData = querystring.stringify({
-          'pin': pin,
-        });
+  const postData = {
+      'pin': pin,
+  };
 
-        var options = {
-          hostname: HOST,
-          port: PORT,
-          path: '/api/token_pin',
-          method: 'POST',
-          headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': postData.length
-          }
-        };
-          
-        var req = http.request(options, (res) => {
-          if (res.statusCode > 299) {
-              reject(`${res.statusCode} - ${res.statusMessage}`);
-          }
+  const options = {
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Content-Length': postData.length
+    },
+  };
 
-          let data = "";
-          
-          res.on('data', (d) => {
-            data += d.toString();
-          });
-          
-          res.on('end', () => {
-            let obj = JSON.parse(data);
-            TOKEN = obj.pin_token;
-            resolve(obj.exam_model);  // resolve  
-          });
+  const res = await axios.post(url, postData, options);
 
-        });
-        
-        req.on('error', e => { 
-          reject(e.message); 
-        });
-        
-        req.write(postData);
-        req.end();
-    });
+  let obj = res.data;
+  TOKEN = obj.pin_token;
+  return obj.exam_model;
 }
 
 // {ticketId, userAnswer, log, sender} =>  {message, restTime}
 //
-function check(ticketId, userAnswer, log) 
+async function check(ticketId, userAnswer, log) 
 {
-  return new Promise(function(resolve, reject) {
-    var postData = querystring.stringify({
-      'ticketId' : ticketId, 
-      'userAnswer': userAnswer,     
-      'log': JSON.stringify(log),
-      'sender': 'code'         
-    });       
+  const url = URL + '/task/check';
 
-    var options = {
-      hostname: HOST,
-      port: PORT,
-      path: '/task/check',
-      method: 'POST',
-      headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Content-Length': postData.length,
-            'Authorization': "Bearer " + TOKEN
-      }
-    };
+  const postData = {
+    'ticketId' : ticketId, 
+    'userAnswer': userAnswer,     
+    'log': JSON.stringify(log),
+    'sender': SENDER         
+  };
 
-    var req = http.request(options, (res) => {
-        
-        if (res.statusCode > 299) {
-            reject(res.statusMessage);
-        }
-        let data = '';
-        
-        res.on('data', (d) => {
-            data += d.toString();
-        });
-        
-        res.on('end', () => { 
-            resolve(JSON.parse(data));
-        });
-    });
-  
-    req.on('error', reject);
+  const options = {
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Content-Length': postData.length,
+      'Authorization': "Bearer " + TOKEN
+    }
+  };
 
-    req.write(postData);
-    req.end(); 
-  });
+  const res = await axios.post(url, postData, options);
+
+  if (res.status > 299) {
+      throw Error(res.statusMessage);
+  }
+  return res.data;
 }
 
 // Отправляет накопленный лог на сервер
 // отправитель - 'code'
 //
-function uppload_code_log(ticket_id, log) 
+async function uppload_code_log(ticketId, log) 
 {
-  return new Promise(function(resolve, reject) {
-    let postData = querystring.stringify({
-      'ticketId' : ticket_id, 
-      'log': JSON.stringify(log),
-      'sender': 'code'         
-    });
-  
-    let options = {
-      hostname: HOST,
-      port: PORT,
-      path: '/task/log',
-      method: 'POST',   
-      headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Content-Length': postData.length,
-          'Authorization': "Bearer " + TOKEN
-        }
-    };
+  const url = URL + '/task/log';
 
-    let req = http.request(options, (res) => {
-        if (res.statusCode > 299) {
-            reject(res.statusMessage);
-        }
-        // по-видимому, из-за того, что в ответе нет данных, нет и обработчика события 'end'
-        resolve(); 
-    });
-    
-    req.on('error', reject);
-    
-    req.write(postData);
-    req.end();
-  });
- }
+  const postData = {
+    'ticketId' : ticketId, 
+    'log': JSON.stringify(log),
+    'sender': SENDER         
+  };
+
+  const options = {
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Content-Length': postData.length,
+      'Authorization': "Bearer " + TOKEN
+    }
+  };
+  
+  const res = await axios.post(url, postData, options);
+
+  if (res.status > 299) {
+    throw Error(res.statusMessage);
+  }
+}
 
 module.exports = {
     token,
