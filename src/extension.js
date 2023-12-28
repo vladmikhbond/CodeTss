@@ -232,7 +232,8 @@ function lang_suit(lang) {
 		vscode.window.showErrorMessage(message);
 	});
 	context.subscriptions.push(disposable);	
-
+   
+	process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
 }
 
 function deactivate() {}

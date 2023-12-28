@@ -4,6 +4,7 @@ const axios = require('axios');
 const config = vscode.workspace.getConfiguration('tss');
 
 const URL = `https://${config.host}:${config.port}`;
+const SENDER = 'code008';
 let TOKEN;
 
 // {pin} => {pin_token: JWT,  exam_model: модель задачи}
@@ -40,7 +41,7 @@ async function check(ticketId, userAnswer, log)
     'ticketId' : ticketId, 
     'userAnswer': userAnswer,     
     'log': JSON.stringify(log),
-    'sender': 'code'         
+    'sender': SENDER         
   };
 
   const options = {
@@ -69,7 +70,7 @@ async function uppload_code_log(ticketId, log)
   const postData = {
     'ticketId' : ticketId, 
     'log': JSON.stringify(log),
-    'sender': 'code'         
+    'sender': SENDER         
   };
 
   const options = {
