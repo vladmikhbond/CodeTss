@@ -234,7 +234,7 @@ function lang_suit(lang) {
 	context.subscriptions.push(disposable);	
     
 	// це, щоб https працював на localhost ===========
-	process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
+	// process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
 	// ===============================================
 }
 
