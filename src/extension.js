@@ -227,14 +227,14 @@ function lang_suit(lang) {
 
     //
 	disposable = vscode.window.onDidChangeWindowState(e => {
-		let message = e.focused ? 'GET FOCUSE' : 'LOST FOCUSE';
-		changesToMemory('Wrong. ' + message);
+		let message = e.focused ? 'Focus gained' : 'Focus lost';
+		changesToMemory(message);
 		vscode.window.showErrorMessage(message);
 	});
 	context.subscriptions.push(disposable);	
     
 	// це, щоб https працював на localhost ===========
-	// process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
+	process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
 	// ===============================================
 }
 
