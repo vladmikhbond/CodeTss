@@ -39,12 +39,12 @@ async function cmd_pin() {
 //
 async function cmd_check() {
 
-	if (!theEditor) 
+	if (!theEditor) {
 		return;	
-
+	}
 	try {
 		let userSolving = getAnswer(theEditor);
-        let obj = await web2.check(model.ticketId, userSolving, log)
+        let obj = await web2.check(model.ticketId, userSolving, log);
 		await afterWebCheckCommand(obj); 
 	} catch(err) {
 		vscode.window.showErrorMessage(err.code); 
