@@ -15,7 +15,8 @@ let lastText = null;
 let log = null; // список списков изменений
 let timerLog = null;
 let timerPeriodical = null;
-let theEditor = null;
+// let theEditor = null;
+
 // --------------------------------------
 
 
@@ -38,12 +39,9 @@ async function cmd_pin() {
 // CHECK - send solving and log
 //
 async function cmd_check() {
-
-	if (!theEditor) {
-		return;	
-	}
 	try {
-		let userSolving = getAnswer(theEditor);
+		const editor = vscode.window.activeTextEditor;	
+		let userSolving = getAnswer(editor);
         let obj = await web2.check(model.ticketId, userSolving, log);
 		await afterWebCheckCommand(obj); 
 	} catch(err) {
@@ -71,7 +69,7 @@ async function afterWebPinCommand()
 	let {lang, open, close} = lang_suit(model.taskLang);
 	let content = open+"\n" + model.taskCond + "\n" + close + "\n" + model.taskView;
 	let doc = await vscode.workspace.openTextDocument({content, language: lang});
-	theEditor = await vscode.window.showTextDocument(doc);
+	await vscode.window.showTextDocument(doc);
 
     // save to disk ??
 	// await vscode.commands.executeCommand('workbench.action.files.saveAs');
